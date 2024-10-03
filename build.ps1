@@ -1,0 +1,1 @@
+& "C:/Program Files (x86)/Dev-Cpp/MinGW64/bin/g++.exe" -fdiagnostics-color=always -g ".\wbw121124 OS.cpp" -o ".\wbw121124 OS.exe" -std=c++14
