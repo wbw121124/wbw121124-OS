@@ -2,8 +2,9 @@
 #include<string>
 using namespace std;
 namespace MD5 {
+	//This namespace from baike.baidu.com
 	#define shift(x, n) (((x) << (n)) | ((x) >> (32-(n))))//右移的时候，高位一定要补零，而不是补充符号位
-	#define F(x, y, z) (((x) & (y)) | ((~x) & (z)))    
+	#define F(x, y, z) (((x) & (y)) | ((~x) & (z)))
 	#define G(x, y, z) (((x) & (z)) | ((y) & (~z)))
 	#define H(x, y, z) ((x) ^ (y) ^ (z))
 	#define I(x, y, z) ((y) ^ ((x) | (~z)))
