@@ -135,11 +135,8 @@ vector<string> split(string command, char c)
 	ans.push_back(command.substr(last, command.size() - last));
 	return ans;
 }
-signed main()
+void init()
 {
-	changeColor(10);
-	string commands;
-	chdir(path.c_str());
 	addcommand("exit", exit, "退出OS");
 	addcommand("help", help, "显示帮助信息");
 	addcommand("cls", []() { system("cls"); }, "清屏");
@@ -171,7 +168,7 @@ signed main()
 			changeColor(color);
 		}
 	}, "切换工作目录");
-	addcommand("wos", []() { print("wbw121124 OS 1.0.0\n\tdev by wbw121124\n\t一个命令提示符\n"); }, "输出版本信息");
+	addcommand("wos", []() { print("wbw121124 OS 1.0.5\n\tdev by wbw121124\n\t一个命令提示符\n"); }, "输出版本信息");
 	addcommand("error", []() {
 		if (arg == "")
 			for(int i = 0; i <= 42; i++)
@@ -179,6 +176,14 @@ signed main()
 		else
 			cout << arg << ' ' << strerror(atoi(arg.c_str())) << '\n';
 	}, "输出STL的错误代码和解释");
+	return;
+}
+signed main()
+{
+	changeColor(10);
+	string commands;
+	chdir(path.c_str());
+	init();
 	print("欢迎使用wbw121124OS\n", 100);
 	while (true)
 	{
