@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Flood It Game</title>
+	<style>
+		#game {
+			display: grid;
+			grid-template-columns: repeat(14, 30px);
+			grid-template-rows: repeat(14, 30px);
+		}
+
+		.cell {
+			width: 30px;
+			height: 30px;
+			border: 1px solid #333;
+		}
+	</style>
+</head>
+
+<body>
+	<button onclick="initGame()">New Game</button>
+	<input id="color-picker" />
+	<button onclick="fillfi()">fill</button>
+	<div id="game"></div>
+	<script src="floodit.js"></script>
+</body>
+
+</html>

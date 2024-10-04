@@ -171,6 +171,14 @@ signed main()
 			changeColor(color);
 		}
 	}, "切换工作目录");
+	addcommand("wos", []() { print("wbw121124 OS 1.0.0\n\tdev by wbw121124\n\t一个命令提示符\n"); }, "输出版本信息");
+	addcommand("error", []() {
+		if (arg == "")
+			for(int i = 0; i <= 42; i++)
+				cout << i << ' ' << strerror(i) << '\n';
+		else
+			cout << arg << ' ' << strerror(atoi(arg.c_str())) << '\n';
+	}, "输出STL的错误代码和解释");
 	print("欢迎使用wbw121124OS\n", 100);
 	while (true)
 	{
@@ -199,7 +207,10 @@ signed main()
 			    	command.erase(i, 1);
 			auto space = command.find(' ');
 			if (space == command.npos)
+			{
+				arg = "";
 				run(command);
+			}
 			else
 			{
 				arg = command.substr(space + 1, command.size() - space);
