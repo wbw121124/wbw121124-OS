@@ -1,6 +1,7 @@
 // #include<bits/stdc++.h>
 // 禁止使用endl
 #include<iostream>
+#include<fstream>
 #include<cstdlib>
 #include<cstdio>
 #include<string>
@@ -11,9 +12,21 @@
 #include<map>
 #include<vector>
 #include<direct.h>
+#include<iomanip>
+#include<sstream>
+#include<cmath>
+#include"md5.h"
 #define static_castt(x,y) static_cast<x>(y)
 using namespace std;
 int color;
+string username, password;
+map<string, string> users;
+map<string, void(*)()> commands;
+map<string, string> descriptions;
+string arg;
+string getworkpath();
+string path = getworkpath();//getdesktop();
+HANDLE hConsole = GetStdHandle(STD_INPUT_HANDLE);
 string lower(string s)
 {
 	for (int i = 0; i < s.size(); i++)
@@ -49,8 +62,6 @@ int getColor()
 	// 获取当前控制台字体颜色
 	return color;
 }
-map<string, void(*)()> commands;
-map<string, string> descriptions;
 void run(string command)
 {
 	if (command == "")
@@ -79,6 +90,7 @@ void help()
 		cout << i.first << '\t' << descriptions[i.first] << '\n';
 	return;
 }
+//windows系统桌面位置
 string getdesktop()
 {
 	char path[MAX_PATH];
@@ -96,8 +108,12 @@ string getdesktop()
 	}
 	return path;
 }
-//windows系统桌面位置
-string path = getdesktop();
+string getworkpath()
+{
+	char path[MAX_PATH];
+	getcwd(path, sizeof(path));
+	return path;
+}
 void print(string s, int slp = 10)
 {
 	for (auto c : s)
@@ -114,7 +130,6 @@ void addcommand(string name, void(*func)(), string description)
 	descriptions[name] = description;
 	return;
 }
-string arg;
 vector<string> split(string command, char c)
 {
 	vector<string> ans;
@@ -134,6 +149,38 @@ vector<string> split(string command, char c)
 	}
 	ans.push_back(command.substr(last, command.size() - last));
 	return ans;
+}
+void sign_in()
+{
+	print("请注册:\n请输入用户名\n\tUser Name:", 50);
+	cin >> username;
+	print("请输入密码\n\tPassword:", 50);
+	DWORD mode;
+	GetConsoleMode(hConsole, &mode);
+	SetConsoleMode(hConsole, mode & ~ENABLE_ECHO_INPUT);
+	cin >> password;
+	cin.get();
+	SetConsoleMode(hConsole, mode);
+	username = lower(username);
+	password = lower(password);
+	cout << '\n';
+	pair<string, string> user;
+	ifstream fin("users.wos.txt");
+	if (fin.is_open())
+	{
+		while (fin >> user.first >> user.second)
+			if (user.first == username)
+			{
+				int color = getColor();
+				changeColor(4);
+				cerr << "错误: 用户名已存在\n";
+				changeColor(color);
+				return;
+			}
+	}
+	ofstream fout("users.wos.txt", ios::app);
+	fout << username << ' ' << MD5::getMD5(password) << '\n';
+	return;
 }
 void init()
 {
@@ -168,7 +215,7 @@ void init()
 			changeColor(color);
 		}
 	}, "切换工作目录");
-	addcommand("wos", []() { print("wbw121124 OS 1.0.5\n\tdev by wbw121124\n\t一个命令提示符\n"); }, "输出版本信息");
+	addcommand("wos", []() { print("wbw121124 OS 1.1.0\n\tdev by wbw121124\n\t一个命令提示符\n"); }, "输出版本信息");
 	addcommand("error", []() {
 		if (arg == "")
 			for(int i = 0; i <= 42; i++)
@@ -176,19 +223,60 @@ void init()
 		else
 			cout << arg << ' ' << strerror(atoi(arg.c_str())) << '\n';
 	}, "输出STL的错误代码和解释");
+	addcommand("md5", []() { print(MD5::getMD5(arg) + '\n'); }, "计算字符串的MD5值");
+	addcommand("adduser", []() { sign_in(); }, "添加用户,并登录添加的用户");
 	return;
 }
 signed main()
 {
+	pair<string, string> user;
 	changeColor(10);
 	string commands;
 	chdir(path.c_str());
 	init();
-	print("欢迎使用wbw121124OS\n", 100);
+	ifstream fin("users.wos.txt"); // 读取用户名和密码
+	if (!fin.is_open())
+	{
+		goto signin;
+		// int color = getColor();
+		// changeColor(4);
+		// cerr << "错误: 打开用户文件失败\n";
+		// changeColor(color);
+		// return -1;
+	}
+	while (fin >> user.first >> user.second)
+		users[lower(user.first)] = lower(user.second);
+	if (users.empty())
+		goto signin;
+	print("请输入用户名\n\tUser Name:", 50);
+	cin >> username;
+	print("请输入密码\n\tPassword:", 50);
+	DWORD mode;
+	GetConsoleMode(hConsole, &mode);
+	SetConsoleMode(hConsole, mode & ~ENABLE_ECHO_INPUT);
+	cin >> password;
+	cin.get();
+	SetConsoleMode(hConsole, mode);
+	username = lower(username);
+	password = lower(password);
+	if (username == "guest")
+		goto logined;
+	cout << '\n';
+	if (users.find(username) == users.end() || users[username] != MD5::getMD5(password))
+	{
+		int color = getColor();
+		changeColor(4);
+		cerr << "错误: 用户名或密码错误\n";
+		changeColor(color);
+		return -1;
+	}
+	goto logined;
+logined:
+	print("欢迎使用wbw121124OS, " + username + "!\n", 100);
 	while (true)
 	{
 		changeColor(10);
-		cout << "wbw121124OS " << path << " $ ";
+		cout << username << '@'/*"wbw121124OS "*/ << path << " $ ";
 		changeColor(7);
 		if(!getline(cin, commands))
 		{
@@ -224,5 +312,9 @@ signed main()
 		}
 	}
 	changeColor(7);
+	return 0;
+signin:
+	sign_in();
+	goto logined;
 	return 0;
 }

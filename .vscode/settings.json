@@ -59,7 +59,10 @@
 		"typeinfo": "cpp",
 		"valarray": "cpp",
 		"locale": "cpp",
-		"random": "cpp"
+		"random": "cpp",
+		"*.rh": "cpp",
+		"map": "cpp"
 	},
-	"C_Cpp.errorSquiggles": "disabled"
+	"C_Cpp.errorSquiggles": "disabled",
+	"Codegeex.RepoIndex": true
 }
