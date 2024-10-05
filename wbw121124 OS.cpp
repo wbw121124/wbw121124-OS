@@ -16,13 +16,14 @@
 #include<sstream>
 #include<cmath>
 #include"md5.h"
-#define static_castt(x,y) static_cast<x>(y)
+#include"rsa.h"
 using namespace std;
 int color;
 string username, password;
 map<string, string> users;
 map<string, void(*)()> commands;
 map<string, string> descriptions;
+map<string, string> tempstrings;
 string arg;
 string getworkpath();
 string path = getworkpath();//getdesktop();
@@ -62,6 +63,14 @@ int getColor()
 	// 获取当前控制台字体颜色
 	return color;
 }
+void colorchange(int color1, void(*func)())
+{
+	int color = getColor();
+	changeColor(color1);
+	func();
+	changeColor(color);
+	return;
+}
 void run(string command)
 {
 	if (command == "")
@@ -84,10 +93,16 @@ void exit()
 	exit(0);
 	return;//养成return的好习惯
 }
+int help_ts;
 void help()
 {
 	for (auto i : commands)
-		cout << i.first << '\t' << descriptions[i.first] << '\n';
+	{
+		string t;
+		for (int j = i.first.size(); j < help_ts * 8; j++)
+			t += " ";
+		cout << i.first << t << descriptions[i.first] << '\n';
+	}
 	return;
 }
 //windows系统桌面位置
@@ -126,6 +141,7 @@ void print(string s, int slp = 10)
 void addcommand(string name, void(*func)(), string description)
 {
 	name = lower(name);
+	help_ts = max(help_ts, (int)ceil(name.size() / 4.00));
 	commands[name] = func;
 	descriptions[name] = description;
 	return;
@@ -162,7 +178,6 @@ void sign_in()
 	cin.get();
 	SetConsoleMode(hConsole, mode);
 	username = lower(username);
-	password = lower(password);
 	cout << '\n';
 	pair<string, string> user;
 	ifstream fin("users.wos.txt");
@@ -171,15 +186,43 @@ void sign_in()
 		while (fin >> user.first >> user.second)
 			if (user.first == username)
 			{
-				int color = getColor();
-				changeColor(4);
-				cerr << "错误: 用户名已存在\n";
-				changeColor(color);
+				colorchange(4, []() {
+					cerr << "错误: 用户名已存在\n";
+				});
 				return;
 			}
 	}
 	ofstream fout("users.wos.txt", ios::app);
 	fout << username << ' ' << MD5::getMD5(password) << '\n';
+	users[username] = MD5::getMD5(password);
+	return;
+}
+void change_password()
+{
+	string old, now;
+	DWORD mode;
+	GetConsoleMode(hConsole, &mode);
+	SetConsoleMode(hConsole, mode & ~ENABLE_ECHO_INPUT);
+	print("请输入旧密码\n\tUser Name:", 50);
+	cin >> old;
+	cin.get();
+	if (password != old)
+	{
+		colorchange(4, []() {
+			cerr << "错误: 密码错误\n";
+		});
+		return;
+	}
+	print("\n请输入新密码\n\tPassword:", 50);
+	cin >> now;
+	cin.get();
+	SetConsoleMode(hConsole, mode);
+	cout << '\n';
+	users[username] = MD5::getMD5(now);
+	password = now;
+	ofstream fout("users.wos.txt", ios::trunc);
+	for (auto i : users)
+		fout << i.first << ' ' << i.second << '\n';
 	return;
 }
 void init()
@@ -200,22 +243,21 @@ void init()
 				path = cwd;
 			else
 			{
-				int color = getColor();
-				changeColor(4);
-				cerr << "错误: 获取工作目录失败\n";
-				changeColor(color);
+				colorchange(4, []() {
+					cerr << "错误: 设置工作目录失败\n";
+				});
 			}
 		}
 		else
 		{
-			int color = getColor();
-			changeColor(4);
-			cerr << "错误: 设置工作目录失败\n错误信息: \n\t";
-			perror(strerror(ret));
-			changeColor(color);
+			tempstrings["cderror"] = strerror(ret);
+			colorchange(4, []() {
+				cerr << "错误: 设置工作目录失败\n错误信息: \n\t";
+				perror(tempstrings["cderror"].c_str());
+			});
 		}
 	}, "切换工作目录");
-	addcommand("wos", []() { print("wbw121124 OS 1.1.0\n\tdev by wbw121124\n\t一个命令提示符\n"); }, "输出版本信息");
+	addcommand("wos", []() { print("wbw121124 OS 1.1.5\n\tdev by wbw121124\n\t一个命令提示符\n"); }, "输出版本信息");
 	addcommand("error", []() {
 		if (arg == "")
 			for(int i = 0; i <= 42; i++)
@@ -225,6 +267,58 @@ void init()
 	}, "输出STL的错误代码和解释");
 	addcommand("md5", []() { print(MD5::getMD5(arg) + '\n'); }, "计算字符串的MD5值");
 	addcommand("adduser", []() { sign_in(); }, "添加用户,并登录添加的用户");
+	addcommand("password", []() { change_password(); }, "修改用户密码");
+	addcommand("rsa", []() {
+		string mode, text;
+		while (true)
+		{
+			cout << "请输入命令\n\t(sc, ja, jie, exit)>";
+			if (!(cin >> mode))
+				break;
+			if (mode == "sc")
+			{
+			    cout << "请输入是否有两个不同的、都是不同的质数的整数\n\t(y, n)>";
+				cin >> mode;
+				if (mode == "y")
+				{
+				    long long p, q, n, e, d;
+					cout << "请输入两个不同的、都是不同的质数的整数\n\tp, q>";
+					cin >> p >> q;
+					RSA::generateRSAKeys(p, q, n, e, d, true);
+					cout << "公钥: e, n(" << e << ", " << n << ")\n私钥: d, n(" << d << ", " << n << ")\n";
+				}
+				else
+				{
+					long long p, q, n, e, d;
+					RSA::generateRSAKeys(p, q, n, e, d);
+					cout << "公钥: e, n(" << e << ", " << n << ")\n私钥: d, n(" << d << ", " << n << ")\n";
+				}
+				colorchange(6, []() {cout << "请保管好您的密钥\n";});
+			}
+			else if (mode == "ja")
+			{
+				long long e, n;
+				cout << "请输入私钥\n\t(e, n)>";
+				cin >> e >> n;
+				cin.get();
+				cout << "请输入要加密的字符串\n\t>";
+				getline(cin, text);
+				cout << "加密后的字符串: " << RSA::rsaEncryptstring(text, e, n) << '\n';
+			}
+			else if (mode == "jie")
+			{
+				long long d, n;
+				cout << "请输入公钥\n\t(d, n)>";
+				cin >> d >> n;
+				cin.get();
+				cout << "请输入要解密的字符串\n\t>";
+				getline(cin, text);
+				cout << "解密后的字符串: " << RSA::rsaDecryptstring(text, d, n) << '\n';
+			}
+			else if (mode == "exit")
+				break;
+		}
+	}, "RSA加密解密");
 	return;
 }
 signed main()
@@ -245,7 +339,7 @@ signed main()
 		// return -1;
 	}
 	while (fin >> user.first >> user.second)
-		users[lower(user.first)] = lower(user.second);
+		users[lower(user.first)] = user.second;
 	if (users.empty())
 		goto signin;
 	print("请输入用户名\n\tUser Name:", 50);
@@ -258,16 +352,12 @@ signed main()
 	cin.get();
 	SetConsoleMode(hConsole, mode);
 	username = lower(username);
-	password = lower(password);
 	if (username == "guest")
 		goto logined;
 	cout << '\n';
 	if (users.find(username) == users.end() || users[username] != MD5::getMD5(password))
 	{
-		int color = getColor();
-		changeColor(4);
-		cerr << "错误: 用户名或密码错误\n";
-		changeColor(color);
+		colorchange(6, []() {cerr << "错误: 用户名或密码错误\n";});
 		return -1;
 	}
 	goto logined;
@@ -280,10 +370,7 @@ logined:
 		changeColor(7);
 		if(!getline(cin, commands))
 		{
-			int color = getColor();
-			changeColor(4);
-			cerr << "错误: 读取命令失败，输入了关闭流操作符\n";
-			changeColor(color);
+			colorchange(6, []() {cerr << "错误: 读取命令失败，输入了关闭流操作符\n";});
 			return -1;
 		}
 		changeColor(10);
