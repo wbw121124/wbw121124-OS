@@ -167,8 +167,20 @@ vector<string> split(string command, char c)
 }
 void sign_in()
 {
+	if (username == "guest")
+	{
+		colorchange(4, []() {
+			cerr << "错误: 游客用户无法注册新用户\n";
+		});
+		return;
+	}
 	print("请注册:\n请输入用户名\n\tUser Name:", 50);
 	cin >> username;
+	if (username == "guest")
+	{
+		cin.get();
+	    return;
+	}
 	print("请输入密码\n\tPassword:", 50);
 	DWORD mode;
 	GetConsoleMode(hConsole, &mode);
@@ -198,6 +210,13 @@ void sign_in()
 }
 void change_password()
 {
+	if (username == "guest")
+	{
+		colorchange(4, []() {
+			cerr << "错误: 游客用户无法更改密码\n";
+		});
+		return;
+	}
 	string old, now;
 	DWORD mode;
 	GetConsoleMode(hConsole, &mode);
@@ -231,6 +250,13 @@ void init()
 	addcommand("cls", []() { system("cls"); }, "清屏");
 	addcommand("print", []() { print(arg + "\n"); }, "打印字符串");
 	addcommand("&", []() {
+			if (username == "guest")
+			{
+				colorchange(4, []() {
+					cerr << "错误: 游客用户无法运行powershell命令\n";
+				});
+				return;
+			}
 			system(("powershell " + arg).c_str());
 		}, "运行powershell命令");
 	addcommand("cd", []() {
@@ -256,7 +282,7 @@ void init()
 			});
 		}
 	}, "切换工作目录");
-	addcommand("wos", []() { print("wbw121124 OS 1.2.0\n\tdev by wbw121124\n"); }, "输出版本信息");
+	addcommand("wos", []() { print("wbw121124 OS 1.2.1\n\tdev by wbw121124\n"); }, "输出版本信息");
 	addcommand("error", []() {
 		if (arg == "")
 			for(int i = 0; i <= 42; i++)
@@ -339,21 +365,24 @@ signed main()
 		goto signin;
 	print("请输入用户名\n\tUser Name:", 50);
 	cin >> username;
-	print("请输入密码\n\tPassword:", 50);
-	DWORD mode;
-	GetConsoleMode(hConsole, &mode);
-	SetConsoleMode(hConsole, mode & ~ENABLE_ECHO_INPUT);
-	cin >> password;
-	cin.get();
-	SetConsoleMode(hConsole, mode);
 	username = lower(username);
 	if (username == "guest")
-		goto logined;
-	cout << '\n';
-	if (users.find(username) == users.end() || users[username] != MD5::getMD5(password))
+		cin.get();
+	else
 	{
-		colorchange(6, []() {cerr << "错误: 用户名或密码错误\n";});
-		return -1;
+		print("请输入密码\n\tPassword:", 50);
+		DWORD mode;
+		GetConsoleMode(hConsole, &mode);
+		SetConsoleMode(hConsole, mode & ~ENABLE_ECHO_INPUT);
+		cin >> password;
+		cin.get();
+		SetConsoleMode(hConsole, mode);
+		cout << '\n';
+		if (users.find(username) == users.end() || users[username] != MD5::getMD5(password))
+		{
+			colorchange(6, []() {cerr << "错误: 用户名或密码错误\n";});
+			return -1;
+		}
 	}
 	goto logined;
 logined://登录了
