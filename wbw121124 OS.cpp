@@ -78,10 +78,10 @@ void run(string command)
 	command = lower(command);
 	if (commands.find(command) == commands.end())
 	{
-		int color = getColor();
-		changeColor(4);
-		cerr << "command '" + command + "' not found\n";
-		changeColor(color);
+		tempstrings["command"] = command;
+		colorchange(4, []() {
+			cerr << "command '" + tempstrings["command"] + "' not found\n";
+		});
 		return;
 	}
 	commands[command]();
@@ -115,10 +115,9 @@ string getdesktop()
 	}
 	else
 	{
-		int color = getColor();
-		changeColor(4);
-		cerr << "错误: 获取桌面路径失败\n";
-		changeColor(color);
+		colorchange(4, []() {
+			cerr << "错误: 获取桌面路径失败\n";
+		});
 		getcwd(path, sizeof(path));
 	}
 	return path;
@@ -257,7 +256,7 @@ void init()
 			});
 		}
 	}, "切换工作目录");
-	addcommand("wos", []() { print("wbw121124 OS 1.1.5\n\tdev by wbw121124\n\t一个命令提示符\n"); }, "输出版本信息");
+	addcommand("wos", []() { print("wbw121124 OS 1.2.0\n\tdev by wbw121124\n"); }, "输出版本信息");
 	addcommand("error", []() {
 		if (arg == "")
 			for(int i = 0; i <= 42; i++)
@@ -316,7 +315,10 @@ void init()
 				cout << "解密后的字符串: " << RSA::rsaDecryptstring(text, d, n) << '\n';
 			}
 			else if (mode == "exit")
+			{
+				cin.get();
 				break;
+			}
 		}
 	}, "RSA加密解密");
 	return;
@@ -330,14 +332,7 @@ signed main()
 	init();
 	ifstream fin("users.wos.txt"); // 读取用户名和密码
 	if (!fin.is_open())
-	{
 		goto signin;
-		// int color = getColor();
-		// changeColor(4);
-		// cerr << "错误: 打开用户文件失败\n";
-		// changeColor(color);
-		// return -1;
-	}
 	while (fin >> user.first >> user.second)
 		users[lower(user.first)] = user.second;
 	if (users.empty())
@@ -361,8 +356,8 @@ signed main()
 		return -1;
 	}
 	goto logined;
-logined:
-	print("欢迎使用wbw121124OS, " + username + "!\n", 100);
+logined://登录了
+	print("欢迎使用wbw121124 OS, " + username + "!\n", 100);
 	while (true)
 	{
 		changeColor(10);
@@ -400,7 +395,7 @@ logined:
 	}
 	changeColor(7);
 	return 0;
-signin:
+signin://注册
 	sign_in();
 	goto logined;
 	return 0;
