@@ -79,9 +79,10 @@ void run(string command)
 	if (commands.find(command) == commands.end())
 	{
 		tempstrings["command"] = command;
-		colorchange(4, []() {
-			cerr << "command '" + tempstrings["command"] + "' not found\n";
-		});
+		colorchange(4, []()
+			{
+				cerr << "command '" + tempstrings["command"] + "' not found\n";
+			});
 		return;
 	}
 	commands[command]();
@@ -115,9 +116,10 @@ string getdesktop()
 	}
 	else
 	{
-		colorchange(4, []() {
-			cerr << "错误: 获取桌面路径失败\n";
-		});
+		colorchange(4, []()
+			{
+				cerr << "错误: 获取桌面路径失败\n";
+			});
 		getcwd(path, sizeof(path));
 	}
 	return path;
@@ -169,9 +171,10 @@ void sign_in()
 {
 	if (username == "guest")
 	{
-		colorchange(4, []() {
-			cerr << "错误: 游客用户无法注册新用户\n";
-		});
+		colorchange(4, []()
+			{
+				cerr << "错误: 游客用户无法注册新用户\n";
+			});
 		return;
 	}
 	print("请注册:\n请输入用户名\n\tUser Name:", 50);
@@ -179,7 +182,7 @@ void sign_in()
 	if (username == "guest")
 	{
 		cin.get();
-	    return;
+		return;
 	}
 	print("请输入密码\n\tPassword:", 50);
 	DWORD mode;
@@ -197,9 +200,10 @@ void sign_in()
 		while (fin >> user.first >> user.second)
 			if (user.first == username)
 			{
-				colorchange(4, []() {
-					cerr << "错误: 用户名已存在\n";
-				});
+				colorchange(4, []()
+					{
+						cerr << "错误: 用户名已存在\n";
+					});
 				return;
 			}
 	}
@@ -212,9 +216,10 @@ void change_password()
 {
 	if (username == "guest")
 	{
-		colorchange(4, []() {
-			cerr << "错误: 游客用户无法更改密码\n";
-		});
+		colorchange(4, []()
+			{
+				cerr << "错误: 游客用户无法更改密码\n";
+			});
 		return;
 	}
 	string old, now;
@@ -226,9 +231,10 @@ void change_password()
 	cin.get();
 	if (password != old)
 	{
-		colorchange(4, []() {
-			cerr << "错误: 密码错误\n";
-		});
+		colorchange(4, []()
+			{
+				cerr << "错误: 密码错误\n";
+			});
 		return;
 	}
 	print("\n请输入新密码\n\tPassword:", 50);
@@ -249,104 +255,111 @@ void init()
 	addcommand("help", help, "显示帮助信息");
 	addcommand("cls", []() { system("cls"); }, "清屏");
 	addcommand("print", []() { print(arg + "\n"); }, "打印字符串");
-	addcommand("&", []() {
+	addcommand("&", []()
+		{
 			if (username == "guest")
 			{
-				colorchange(4, []() {
-					cerr << "错误: 游客用户无法运行powershell命令\n";
-				});
+				colorchange(4, []()
+					{
+						cerr << "错误: 游客用户无法运行powershell命令\n";
+					});
 				return;
 			}
 			system(("powershell " + arg).c_str());
 		}, "运行powershell命令");
-	addcommand("cd", []() {
-		int ret = chdir(arg.c_str());
-		if (ret == 0)
+	addcommand("cd", []()
 		{
-			char cwd[PATH_MAX];
-			if (getcwd(cwd, sizeof(cwd)) != NULL)
-				path = cwd;
+			int ret = chdir(arg.c_str());
+			if (ret == 0)
+			{
+				char cwd[PATH_MAX];
+				if (getcwd(cwd, sizeof(cwd)) != NULL)
+					path = cwd;
+				else
+				{
+					colorchange(4, []()
+						{
+							cerr << "错误: 设置工作目录失败\n";
+						});
+				}
+			}
 			else
 			{
-				colorchange(4, []() {
-					cerr << "错误: 设置工作目录失败\n";
-				});
+				tempstrings["cderror"] = strerror(ret);
+				colorchange(4, []()
+					{
+						cerr << "错误: 设置工作目录失败\n错误信息: \n\t";
+						perror(tempstrings["cderror"].c_str());
+					});
 			}
-		}
-		else
-		{
-			tempstrings["cderror"] = strerror(ret);
-			colorchange(4, []() {
-				cerr << "错误: 设置工作目录失败\n错误信息: \n\t";
-				perror(tempstrings["cderror"].c_str());
-			});
-		}
-	}, "切换工作目录");
+		}, "切换工作目录");
 	addcommand("wos", []() { print("wbw121124 OS 1.2.1\n\tdev by wbw121124\n"); }, "输出版本信息");
-	addcommand("error", []() {
-		if (arg == "")
-			for(int i = 0; i <= 42; i++)
-				cout << i << ' ' << strerror(i) << '\n';
-		else
-			cout << arg << ' ' << strerror(atoi(arg.c_str())) << '\n';
-	}, "输出STL的错误代码和解释");
+	addcommand("error", []()
+		{
+			if (arg == "")
+				for (int i = 0; i <= 42; i++)
+					cout << i << ' ' << strerror(i) << '\n';
+			else
+				cout << arg << ' ' << strerror(atoi(arg.c_str())) << '\n';
+		}, "输出STL的错误代码和解释");
 	addcommand("md5", []() { print(MD5::getMD5(arg) + '\n'); }, "计算字符串的MD5值");
 	addcommand("adduser", []() { sign_in(); }, "添加用户,并登录添加的用户");
 	addcommand("password", []() { change_password(); }, "修改用户密码");
-	addcommand("rsa", []() {
-		string mode, text;
-		while (true)
+	addcommand("rsa", []()
 		{
-			cout << "请输入命令\n\t(sc, ja, jie, exit)>";
-			if (!(cin >> mode))
-				break;
-			if (mode == "sc")
+			string mode, text;
+			while (true)
 			{
-			    cout << "请输入是否有两个不同的、都是不同的质数的整数\n\t(y, n)>";
-				cin >> mode;
-				if (mode == "y")
+				cout << "请输入命令\n\t(sc, ja, jie, exit)>";
+				if (!(cin >> mode))
+					break;
+				if (mode == "sc")
 				{
-				    long long p, q, n, e, d;
-					cout << "请输入两个不同的、都是不同的质数的整数\n\tp, q>";
-					cin >> p >> q;
-					RSA::generateRSAKeys(p, q, n, e, d, true);
-					cout << "公钥: e, n(" << e << ", " << n << ")\n私钥: d, n(" << d << ", " << n << ")\n";
+					cout << "请输入是否有两个不同的、都是不同的质数的整数\n\t(y, n)>";
+					cin >> mode;
+					if (mode == "y")
+					{
+						long long p, q, n, e, d;
+						cout << "请输入两个不同的、都是不同的质数的整数\n\tp, q>";
+						cin >> p >> q;
+						RSA::generateRSAKeys(p, q, n, e, d, true);
+						cout << "公钥: e, n(" << e << ", " << n << ")\n私钥: d, n(" << d << ", " << n << ")\n";
+					}
+					else
+					{
+						long long p, q, n, e, d;
+						RSA::generateRSAKeys(p, q, n, e, d);
+						cout << "公钥: e, n(" << e << ", " << n << ")\n私钥: d, n(" << d << ", " << n << ")\n";
+					}
+					colorchange(6, []() { cout << "请保管好您的密钥\n"; });
 				}
-				else
+				else if (mode == "ja")
 				{
-					long long p, q, n, e, d;
-					RSA::generateRSAKeys(p, q, n, e, d);
-					cout << "公钥: e, n(" << e << ", " << n << ")\n私钥: d, n(" << d << ", " << n << ")\n";
+					long long e, n;
+					cout << "请输入私钥\n\t(e, n)>";
+					cin >> e >> n;
+					cin.get();
+					cout << "请输入要加密的字符串\n\t>";
+					getline(cin, text);
+					cout << "加密后的字符串: " << RSA::rsaEncryptstring(text, e, n) << '\n';
 				}
-				colorchange(6, []() {cout << "请保管好您的密钥\n";});
+				else if (mode == "jie")
+				{
+					long long d, n;
+					cout << "请输入公钥\n\t(d, n)>";
+					cin >> d >> n;
+					cin.get();
+					cout << "请输入要解密的字符串\n\t>";
+					getline(cin, text);
+					cout << "解密后的字符串: " << RSA::rsaDecryptstring(text, d, n) << '\n';
+				}
+				else if (mode == "exit")
+				{
+					cin.get();
+					break;
+				}
 			}
-			else if (mode == "ja")
-			{
-				long long e, n;
-				cout << "请输入私钥\n\t(e, n)>";
-				cin >> e >> n;
-				cin.get();
-				cout << "请输入要加密的字符串\n\t>";
-				getline(cin, text);
-				cout << "加密后的字符串: " << RSA::rsaEncryptstring(text, e, n) << '\n';
-			}
-			else if (mode == "jie")
-			{
-				long long d, n;
-				cout << "请输入公钥\n\t(d, n)>";
-				cin >> d >> n;
-				cin.get();
-				cout << "请输入要解密的字符串\n\t>";
-				getline(cin, text);
-				cout << "解密后的字符串: " << RSA::rsaDecryptstring(text, d, n) << '\n';
-			}
-			else if (mode == "exit")
-			{
-				cin.get();
-				break;
-			}
-		}
-	}, "RSA加密解密");
+		}, "RSA加密解密");
 	return;
 }
 signed main()
@@ -363,6 +376,7 @@ signed main()
 		users[lower(user.first)] = user.second;
 	if (users.empty())
 		goto signin;
+login:
 	print("请输入用户名\n\tUser Name:", 50);
 	cin >> username;
 	username = lower(username);
@@ -380,7 +394,7 @@ signed main()
 		cout << '\n';
 		if (users.find(username) == users.end() || users[username] != MD5::getMD5(password))
 		{
-			colorchange(6, []() {cerr << "错误: 用户名或密码错误\n";});
+			colorchange(6, []() { cerr << "错误: 用户名或密码错误\n"; });
 			return -1;
 		}
 	}
@@ -392,23 +406,25 @@ logined://登录了
 		changeColor(10);
 		cout << username << '@'/*"wbw121124OS "*/ << path << " $ ";
 		changeColor(7);
-		if(!getline(cin, commands))
+		if (!getline(cin, commands))
 		{
-			colorchange(6, []() {cerr << "错误: 读取命令失败，输入了关闭流操作符\n";});
+			colorchange(6, []() { cerr << "错误: 读取命令失败，输入了关闭流操作符\n"; });
 			return -1;
 		}
 		changeColor(10);
 		//将commands按';'划分并运行
 		for (auto command : split(commands, ';'))
 		{
+			if (command == "su")
+				goto login;
 			//将'\;'替换为';'
 			for (int i = 0; i < (int)command.size() - 1; i++)
-			    if (command[i] == '\\' && command[i + 1] == ';')
-			    	command.erase(i, 1);
+				if (command[i] == '\\' && command[i + 1] == ';')
+					command.erase(i, 1);
 			//将'\\'替换为'\'
 			for (int i = 0; i < (int)command.size() - 1; i++)
-			    if (command[i] == '\\' && command[i + 1] == '\\')
-			    	command.erase(i, 1);
+				if (command[i] == '\\' && command[i + 1] == '\\')
+					command.erase(i, 1);
 			auto space = command.find(' ');
 			if (space == command.npos)
 			{
@@ -417,6 +433,8 @@ logined://登录了
 			}
 			else
 			{
+				if (command.substr(0, space) == "su")
+					goto login;
 				arg = command.substr(space + 1, command.size() - space);
 				run(command.substr(0, space));
 			}
