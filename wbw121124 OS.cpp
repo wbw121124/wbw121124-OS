@@ -19,14 +19,11 @@
 #include"rsa.h"
 using namespace std;
 int color;
-string username, password;
-map<string, string> users;
-map<string, void(*)()> commands;
-map<string, string> descriptions;
-map<string, string> tempstrings;
-string arg;
+string version = "1.3.0";
 string getworkpath();
-string path = getworkpath();//getdesktop();
+string username, password, arg, path = getworkpath();
+map<string, void(*)()> commands;
+map<string, string> users, descriptions, tempstrings;
 HANDLE hConsole = GetStdHandle(STD_INPUT_HANDLE);
 string lower(string s)
 {
@@ -293,7 +290,7 @@ void init()
 					});
 			}
 		}, "切换工作目录");
-	addcommand("wos", []() { print("wbw121124 OS 1.2.1\n\tdev by wbw121124\n"); }, "输出版本信息");
+	addcommand("wos", []() { print("wbw121124 OS " + version + "\n\tdev by wbw121124\n"); }, "输出版本信息");
 	addcommand("error", []()
 		{
 			if (arg == "")
@@ -360,6 +357,7 @@ void init()
 				}
 			}
 		}, "RSA加密解密");
+	addcommand("su", []() {}, "切换用户");
 	return;
 }
 signed main()
@@ -415,6 +413,10 @@ logined://登录了
 		//将commands按';'划分并运行
 		for (auto command : split(commands, ';'))
 		{
+			//去前缀空格
+			int cnt = -1;
+			while (command[++cnt] == ' ');
+			command.erase(0, cnt);
 			if (command == "su")
 				goto login;
 			//将'\;'替换为';'
